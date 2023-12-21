@@ -15,7 +15,9 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
+        
+        fetchService()
+        
     }
     
     // Endpoint:https://run.mocky.io/v3/e69e76af-1159-4254-b7eb-4d8d94710696
@@ -33,9 +35,35 @@ class ViewController: UIViewController {
             return
         }
         
+        activityIndicator.startAnimating()
+        
         URLSession.shared.dataTask(with: endpoint) { (data : Data?, _, error: Error?) in
             
-        }
+            DispatchQueue.main.async {
+                self.activityIndicator.stopAnimating()
+            }
+            
+            if error != nil {
+                print("Hubo un error")
+                return
+            }
+            
+            guard let dataFromService = data,
+                  let dictionary = try? JSONSerialization.jsonObject(with:dataFromService, options: []) as? [String:Any] else {
+                
+                return
+            }
+            
+            //Importante todos los llamados al UI se hacen en el main thread
+            DispatchQueue.main.async {
+                let isHappy  = dictionary["isHappy"] as? Bool ?? false
+                self.nameLabel.text = dictionary["user"] as? String
+                self.statusLabel.text = isHappy ? "Es Feliz" : "Es triste!"
+            }
+           
+        
+            
+        }.resume()
         
     }
 
