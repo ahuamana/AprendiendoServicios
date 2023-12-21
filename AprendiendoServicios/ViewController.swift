@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import Alamofire
 
 //1. Crear modelo Codable (structura)
 //2. Utilizar JSONDecoder para serializar Data a Modelo
@@ -46,19 +47,19 @@ class ViewController: UIViewController {
         
         activityIndicator.startAnimating()
         
-        URLSession.shared.dataTask(with: endpoint) { (data : Data?, _, error: Error?) in
+        AF.request(endpoint, method: HTTPMethod.get, parameters: nil).responseData { response in
             
             DispatchQueue.main.async {
                 self.activityIndicator.stopAnimating()
             }
             
-            if error != nil {
+            if response.error != nil {
                 print("Hubo un error")
                 return
             }
             
             guard
-                let dataFromService = data,
+                let dataFromService = response.data,
                 let model: Human = try? JSONDecoder().decode(Human.self, from: dataFromService) else {
                 return
             }
@@ -68,10 +69,7 @@ class ViewController: UIViewController {
                 self.nameLabel.text = model.user
                 self.statusLabel.text = model.isHappy ? "Es Feliz" : "Es triste!"
             }
-           
-        
-            
-        }.resume()
+        }
         
     }
 
